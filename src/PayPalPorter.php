@@ -4,6 +4,8 @@
 
    use Grayl\Mixin\Common\Traits\StaticTrait;
    use Grayl\Omnipay\Common\OmnipayPorterAbstract;
+   use Grayl\Omnipay\PayPal\Config\PayPalAPIEndpoint;
+   use Grayl\Omnipay\PayPal\Config\PayPalConfig;
    use Grayl\Omnipay\PayPal\Controller\PayPalAuthorizeRequestController;
    use Grayl\Omnipay\PayPal\Controller\PayPalCaptureRequestController;
    use Grayl\Omnipay\PayPal\Controller\PayPalCompleteRequestController;
@@ -23,7 +25,7 @@
 
    /**
     * Front-end for the PayPal Omnipay package
-    * @method PayPalGatewayData getSavedGatewayDataEntity ( string $endpoint_id )
+    * @method PayPalGatewayData getSavedGatewayDataEntity ( string $api_endpoint_id )
     *
     * @package Grayl\Omnipay\PayPal
     */
@@ -38,18 +40,25 @@
        *
        * @var string
        */
-      protected string $config_file = 'gateway.omnipay.paypal.php';
+      protected string $config_file = 'omnipay-paypal.php';
+
+      /**
+       * The PayPalConfig instance for this gateway
+       *
+       * @var PayPalConfig
+       */
+      protected $config;
 
 
       /**
        * Creates a new Omnipay ApiGateway object for use in a PayPalGatewayData entity
        *
-       * @param array $credentials An array containing all of the credentials needed to create the gateway API
+       * @param PayPalAPIEndpoint $api_endpoint A PayPalAPIEndpoint with credentials needed to create a gateway API object
        *
        * @return RestGateway
        * @throws \Exception
        */
-      public function newGatewayAPI ( array $credentials ): object
+      public function newGatewayAPI ( $api_endpoint ): object
       {
 
          // Create the Omnipay PayPalGateway api entity
@@ -57,8 +66,8 @@
          $api = Omnipay::create( 'PayPal_Rest' );
 
          // Set the environment's credentials into the API
-         $api->setClientID( $credentials[ 'clientid' ] );
-         $api->setSecret( $credentials[ 'secret' ] );
+         $api->setClientID( $api_endpoint->getClientID() );
+         $api->setSecret( $api_endpoint->getSecret() );
 
          // Return the new instance
          return $api;
@@ -68,21 +77,21 @@
       /**
        * Creates a new PayPalGatewayData entity
        *
-       * @param string $endpoint_id The API endpoint ID to use (typically "default" is there is only one API gateway)
+       * @param string $api_endpoint_id The API endpoint ID to use (typically "default" if there is only one API gateway)
        *
        * @return PayPalGatewayData
        * @throws \Exception
        */
-      public function newGatewayDataEntity ( string $endpoint_id ): object
+      public function newGatewayDataEntity ( string $api_endpoint_id ): object
       {
 
          // Grab the gateway service
          $service = new PayPalGatewayService();
 
-         // Get an API
-         $api = $this->newGatewayAPI( $service->getAPICredentials( $this->config,
-                                                                   $this->environment,
-                                                                   $endpoint_id ) );
+         // Get a new API
+         $api = $this->newGatewayAPI( $service->getAPIEndpoint( $this->config,
+                                                                $this->environment,
+                                                                $api_endpoint_id ) );
 
          // Configure the API as needed using the service
          $service->configureAPI( $api,
@@ -90,7 +99,7 @@
 
          // Return the gateway
          return new PayPalGatewayData( $api,
-                                       $this->config->getConfig( 'name' ),
+                                       $this->config->getGatewayName(),
                                        $this->environment );
       }
 
