@@ -31,8 +31,7 @@
       {
 
          // Set the payer ID field into the request data
-         $request_data->setMainParameter( 'payerId',
-                                          $payer_id );
+         $request_data->setPayerID( $payer_id );
       }
 
 
