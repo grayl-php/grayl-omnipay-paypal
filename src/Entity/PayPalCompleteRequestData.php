@@ -13,6 +13,32 @@
    class PayPalCompleteRequestData extends OmnipayRequestDataAbstract
    {
 
-      // No overrides to the abstract class
+      /**
+       * Sets the payer id
+       *
+       * @param string $payer_id The payer ID
+       */
+      public function setPayerID ( string $payer_id ): void
+      {
+
+         // Set the payer ID
+         $this->setMainParameter( 'payerId',
+                                  $payer_id );
+
+      }
+
+
+      /**
+       * Gets the payer id
+       *
+       * @return string
+       */
+      public function getPayerID (): string
+      {
+
+         // Get the payer ID
+         return $this->getMainParameter( 'payerId' );
+
+      }
 
    }
