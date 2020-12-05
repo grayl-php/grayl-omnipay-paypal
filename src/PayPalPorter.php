@@ -3,12 +3,14 @@
    namespace Grayl\Omnipay\PayPal;
 
    use Grayl\Mixin\Common\Traits\StaticTrait;
+   use Grayl\Omnipay\Common\Entity\OmnipayGatewayOffsiteCustomer;
    use Grayl\Omnipay\Common\OmnipayPorterAbstract;
    use Grayl\Omnipay\PayPal\Config\PayPalAPIEndpoint;
    use Grayl\Omnipay\PayPal\Config\PayPalConfig;
    use Grayl\Omnipay\PayPal\Controller\PayPalAuthorizeRequestController;
    use Grayl\Omnipay\PayPal\Controller\PayPalCaptureRequestController;
    use Grayl\Omnipay\PayPal\Controller\PayPalCompleteRequestController;
+   use Grayl\Omnipay\PayPal\Controller\PayPalCompleteResponseController;
    use Grayl\Omnipay\PayPal\Entity\PayPalAuthorizeRequestData;
    use Grayl\Omnipay\PayPal\Entity\PayPalCaptureRequestData;
    use Grayl\Omnipay\PayPal\Entity\PayPalCompleteRequestData;
@@ -164,6 +166,46 @@
                                                     $request_data,
                                                     new PayPalCaptureRequestService(),
                                                     new PayPalCaptureResponseService() );
+      }
+
+
+      /**
+       * Creates an OmnipayGatewayOffsiteCustomer from offsite payment data returned in a PayPalCompleteResponseData
+       *
+       * @param PayPalCompleteResponseController $response The response object to pull the data from
+       *
+       * @return OmnipayGatewayOffsiteCustomer
+       * @throws \Exception
+       */
+      public function newOmnipayGatewayOffsiteCustomerFromResponse ( $response ): OmnipayGatewayOffsiteCustomer
+      {
+
+         // Grab the variables we need
+         $data = $response->getData();
+
+         // If we are missing payer data, throw an error
+         if ( empty( $data ) || empty( $data[ 'payer' ][ 'payer_info' ][ 'email' ] ) ) {
+            // Error, no user data returned
+            throw new \Exception( "Offsite customer information missing" );
+         }
+
+         // Set the root array of data
+         $payer = $data[ 'payer' ][ 'payer_info' ];
+
+         // Determine what address to use
+         $address = ( isset( $payer[ 'billing_address' ] ) ) ? $payer[ 'billing_address' ] : $payer[ 'shipping_address' ];
+
+         // Return a new OmnipayGatewayOffsiteCustomer using data from the PayPal response
+         return new OmnipayGatewayOffsiteCustomer( $payer[ 'first_name' ],
+                                                   $payer[ 'last_name' ],
+                                                   $payer[ 'email' ],
+                                                   $address[ 'line1' ],
+                                                   ( isset( $address[ 'line2' ] ) ) ? $address[ 'line2' ] : null,
+                                                   $address[ 'city' ],
+                                                   $address[ 'state' ],
+                                                   $address[ 'postal_code' ],
+                                                   $address[ 'country_code' ],
+                                                   null );
       }
 
    }
