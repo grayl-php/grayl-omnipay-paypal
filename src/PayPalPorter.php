@@ -108,16 +108,28 @@
 
       /**
        * Creates a new PayPalAuthorizeRequestController entity
+       * NOTE: You must add items using the ->putItem method after this object is returned
+       *
+       * @param string $transaction_id The internal transaction ID
+       * @param float  $amount         The amount to charge
+       * @param string $currency       The base currency of the amount
        *
        * @return PayPalAuthorizeRequestController
        * @throws \Exception
        */
-      public function newPayPalAuthorizeRequestController (): PayPalAuthorizeRequestController
+      public function newPayPalAuthorizeRequestController ( string $transaction_id,
+                                                            float $amount,
+                                                            string $currency ): PayPalAuthorizeRequestController
       {
 
          // Create the PayPalQueryRequestData entity
          $request_data = new PayPalAuthorizeRequestData( 'authorize',
                                                          $this->getOffsiteURLs() );
+
+         // Set the order parameters
+         $request_data->setTransactionID( $transaction_id );
+         $request_data->setAmount( $amount );
+         $request_data->setCurrency( $currency );
 
          // Return a new PayPalQueryRequestController entity
          return new PayPalAuthorizeRequestController( $this->getSavedGatewayDataEntity( 'default' ),
@@ -130,15 +142,32 @@
       /**
        * Creates a new PayPalCompleteRequestController entity
        *
+       * @param string $transaction_id The internal transaction ID
+       * @param float  $amount         The amount to charge
+       * @param string $currency       The base currency of the amount
+       * @param string $reference_id   A reference ID from a PayflowAuthorizeResponseController
+       * @param string $payer_id       The payer ID returned from Paypal (a query string parameter found on redirect to complete offsite URL)
+       *
        * @return PayPalCompleteRequestController
        * @throws \Exception
        */
-      public function newPayPalCompleteRequestController (): PayPalCompleteRequestController
+      public function newPayPalCompleteRequestController ( string $transaction_id,
+                                                           float $amount,
+                                                           string $currency,
+                                                           string $reference_id,
+                                                           string $payer_id ): PayPalCompleteRequestController
       {
 
          // Create the PayPalQueryRequestData entity
          $request_data = new PayPalCompleteRequestData( 'confirm',
                                                         $this->getOffsiteURLs() );
+
+         // Set the order parameters
+         $request_data->setTransactionID( $transaction_id );
+         $request_data->setAmount( $amount );
+         $request_data->setCurrency( $currency );
+         $request_data->setTransactionReference( $reference_id );
+         $request_data->setPayerID( $payer_id );
 
          // Return a new PayPalQueryRequestController entity
          return new PayPalCompleteRequestController( $this->getSavedGatewayDataEntity( 'default' ),
@@ -151,15 +180,29 @@
       /**
        * Creates a new PayPalCaptureRequestController entity
        *
+       * @param string $transaction_id The internal transaction ID
+       * @param float  $amount         The amount to charge
+       * @param string $currency       The base currency of the amount
+       * @param string $reference_id   A reference ID from a PayflowCompleteResponseController
+       *
        * @return PayPalCaptureRequestController
        * @throws \Exception
        */
-      public function newPayPalCaptureRequestController (): PayPalCaptureRequestController
+      public function newPayPalCaptureRequestController ( string $transaction_id,
+                                                          float $amount,
+                                                          string $currency,
+                                                          string $reference_id ): PayPalCaptureRequestController
       {
 
          // Create the PayPalQueryRequestData entity
          $request_data = new PayPalCaptureRequestData( 'capture',
                                                        $this->getOffsiteURLs() );
+
+         // Set the order parameters
+         $request_data->setTransactionID( $transaction_id );
+         $request_data->setAmount( $amount );
+         $request_data->setCurrency( $currency );
+         $request_data->setTransactionReference( $reference_id );
 
          // Return a new PayPalQueryRequestController entity
          return new PayPalCaptureRequestController( $this->getSavedGatewayDataEntity( 'default' ),
